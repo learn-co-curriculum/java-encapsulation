@@ -88,6 +88,165 @@ as `private`, and provide `public` methods to access and modify the variables.
 - We provide `public` methods  such as `giveTreat()`, `giveBath()` and `toString()`
   to access and modify the values stored in the variables.
 
+## Why do we hide instance variables?
+
+One reason to hide instance variables is to protect object state
+from unexpected or invalid modification by other classes.  Consider what would happen if
+we add a public instance variable named `bark` to our `Dog` class:
+
+```java
+public class Dog {
+    private String name;
+    private int weight;
+    private boolean likesBaths;
+    private boolean waggingTail;
+    public String bark = "Woof!";
+    
+    public Dog(String name, int weight, boolean likesBaths, boolean waggingTail) {
+        this.name = name;
+        this.weight = weight;
+        this.likesBaths = likesBaths;
+        this.waggingTail = waggingTail;
+    }
+
+    public void giveTreat() {
+        waggingTail = true;
+        weight++;
+    }
+
+    public void giveBath() {
+        waggingTail = likesBaths;
+    }
+
+    @Override
+    public String toString() {
+        return "name='" + name + '\'' +
+                ", weight=" + weight +
+                ", likesBaths=" + likesBaths +
+                ", waggingTail=" + waggingTail;
+    }
+}
+```
+
+Since `bark` is public, any class can modify the value.  We can create another
+class that forces the dog to say "Meow!" instead of "Woof!"
+when it barks.  This violates the model of a  `Dog` that the
+class is trying to encapsulate.
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        Dog fido = new Dog("fido", 30, true, false);
+        snoopy.bark = "Meow!";
+    }
+}
+```
+
+
+Another reason to encapsulate instance variables is to facilitate change.
+Suppose we have a `Person` class as shown:
+
+```java
+public class Person {
+  private String name;
+  private String street;
+  private String city;
+  private String state;
+
+  public Person(String name, String street, String city, String state) {
+    this.name = name;
+    this.street = street;
+    this.city = city;
+    this.state = state;
+  }
+
+  public String getName() { return name; }
+
+  public String getAddress() { return String.format("%s, %s, %s", street, city, state); }
+}
+```
+
+The `Main` class creates a `Person` instance and call the public methods to print
+the object state:
+
+```java
+public class Main {
+  public static void main(String[] args) {
+    Person p1 = new Person("Fred", "123 Main St", "Boston", "MA");
+    System.out.println(p1.getName() + " lives at " + p1.getAddress());
+  }
+}
+```
+
+The output is:
+
+```text
+Fred lives at 123 Main St, Boston, MA
+```
+
+Now suppose we decide to create a new class named `Address` to encapsulate the `street`, `city`, and
+`state`.  
+
+```java
+public class Address {
+    private String street;
+    private String city;
+    private String state;
+
+    public Address(String street, String city, String state) {
+        this.street = street;
+        this.city = city;
+        this.state = state;
+    }
+
+    public String getStreet() {return street;}
+    public String getCity() {return city;}
+    public String getState() {return state;}
+}
+```
+
+We can evolve the `Person` class to replace the 3 instance variables `street`, `city`, and `state`
+with a single variable `address` that stores a reference to an `Address` object.
+The public `getAddress` method calls  accessor methods to get the individual address fields.
+
+```java
+public class Person {
+    private String name;
+    private Address address; 
+
+    public Person(String name, String street, String city, String state) {
+        this.name = name;
+        this.address = new Address(street, city, state);
+    }
+
+    public String getName() { return name; }
+
+    public String getAddress() {
+        return String.format("%s, %s, %s", address.getStreet(), address.getCity(), address.getState());
+    }
+}
+```
+
+The `Main` class does not need to change at all, since data hiding prevented
+it from directly accessed the instance variables of the `Person` class.
+The public interface of the `Person` class (i.e. methods `getName()` and `getAddress()`) remains the same,
+even though the one of the method implementations changed.
+
+```java
+public class Main {
+    public static void main(String[] args) {
+        Person p1 = new Person("Fred", "123 Main St", "Boston", "MA");
+        System.out.println(p1.getName() + " lives at " + p1.getAddress());
+    }
+}
+```
+
+The output is still:
+
+```text
+Fred lives at 123 Main St, Boston, MA
+```
+
 ## Conclusion
 
 Encapsulation bundles data and methods together into a single class.
